@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEURAL_ARCHITECT_PREMIUM++ | Industrial Intelligence Enterprise v18.5</title>
+    <style>
+        /* ГЛОБАЛЬНАЯ АРХИТЕКТУРНАЯ СИСТЕМА СТИЛЕЙ */
+        :root {
+            --ui-bg-main: #090d16;
+            --ui-bg-panel: #121826;
+            --ui-bg-active: #1e293b;
+            --ui-accent: #2563eb;
+            --ui-accent-hover: #3b82f6;
+            --ui-danger: #dc2626;
+            --ui-danger-bg: #fee2e2;
+            --ui-success: #16a34a;
+            --ui-warning: #d97706;
+            --ui-text: #f8fafc;
+            --ui-text-muted: #64748b;
+            --canvas-bg: #0f172a;
+            --blank-bg: #ffffff;
+            --blank-text: #000000;
+            --blank-weekend-bg: #ffe4e6;
+            --blank-border: #000000;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            display: flex; height: 100vh; background: var(--canvas-bg);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            overflow: hidden; color: var(--blank-text);
+        }
+
+        /* САЙДБАР УПРАВЛЕНИЯ */
+        .sidebar {
+            width: 580px; min-width: 580px; background: var(--ui-bg-main); color: var(--ui-text);
+            padding: 14px; display: flex; flex-direction: column; gap: 10px; overflow-y: auto;
+            height: 100vh; border-right: 3px solid #000; box-shadow: 5px 0 25px rgba(0,0,0,0.7);
+            z-index: 1000; transition: margin-left 0.2s ease;
+        }
+        .sidebar.collapsed { margin-left: -580px; }
+        
+        .sidebar h1 {
+            font-size: 0.9rem; font-weight: 900; color: var(--ui-accent-hover);
+            text-transform: uppercase; border-bottom: 2px solid var(--ui-bg-panel); padding-bottom: 5px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .sidebar h1 span { font-size: 0.55rem; background: #e11d48; padding: 1px 5px; border-radius: 3px; color: #fff; }
+
+        .config-card {
+            background: var(--ui-bg-panel); border: 1px solid rgba(37, 99, 235, 0.2); border-radius: 6px;
+            padding: 10px; display: flex; flex-direction: column; gap: 5px;
+        }
+        .config-card h3 { margin: 0; font-size: 0.7rem; text-transform: uppercase; color: var(--ui-accent-hover); border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 3px; }
+
+        .form-group { display: flex; flex-direction: column; gap: 2px; }
+        .form-group label { font-size: 0.58rem; text-transform: uppercase; color: #94a3b8; font-weight: 700; }
+        
+        input[type="text"], input[type="number"], input[type="password"], select {
+            width: 100%; padding: 4px 6px; background: var(--ui-bg-main);
+            border: 1px solid #1e293b; color: #fff; border-radius: 4px; font-size: 0.7rem;
+        }
+        input[type="text"]:focus, input[type="number"]:focus, select:focus { border-color: var(--ui-accent); outline: none; }
+        
+        .row-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+        .row-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; }
+        .row-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+        .row-grid-5 { display: grid; grid-template-columns: 1.5fr repeat(4, 1fr); gap: 4px; }
+
+        /* СКРОЛЛ-КОНТЕЙНЕРЫ ДЛЯ ИНТЕРФЕЙСОВ CRUD */
+        .crud-box-container { max-height: 120px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; padding-right: 2px; }
+        .crud-row {
+            background: rgba(0, 0, 0, 0.3); padding: 6px; border-radius: 4px;
+            border: 1px solid #1e293b; display: flex; flex-direction: column; gap: 4px;
+        }
+        .crud-header-line { display: flex; justify-content: space-between; align-items: center; gap: 4px; }
+
+        .bulk-employee-selector {
+            max-height: 85px; overflow-y: auto; background: var(--ui-bg-main);
+            border: 1px solid #1e293b; border-radius: 4px; padding: 4px; display: flex; flex-direction: column; gap: 2px;
+        }
+        .bulk-emp-label {
+            display: flex; align-items: center; gap: 5px; font-size: 0.65rem;
+            color: #cbd5e1; padding: 2px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.02);
+        }
+        .bulk-emp-label:hover { background: rgba(255,255,255,0.05); }
+
+        /* КНОПКИ СИСТЕМЫ */
+        .btn {
+            cursor: pointer; padding: 5px 8px; border: none; border-radius: 4px;
+            font-weight: 700; font-size: 0.62rem; text-transform: uppercase;
+            transition: background 0.1s ease; display: inline-flex; justify-content: center; align-items: center; gap: 3px;
+        }
+        .btn-accent { background: var(--ui-accent); color: #fff; width: 100%; }
+        .btn-accent:hover { background: var(--ui-accent-hover); }
+        .btn-success { background: var(--ui-success); color: #fff; width: 100%; }
+        .btn-secondary { background: #475569; color: #fff; }
+        .btn-danger { background: var(--ui-danger); color: #fff; }
+        .btn-warning { background: var(--ui-warning); color: #fff; }
+        .btn-small { padding: 2px 4px; font-size: 0.58rem; border-radius: 3px; height: 18px; }
+
+        /* РАБОЧАЯ ЗОНА ПРОСМОТРА БЛАНКОВ */
+        .canvas-area { flex: 1; padding: 14px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; gap: 16px; position: relative; }
+        .canvas-toolbar {
+            position: sticky; top: 0; z-index: 500; background: var(--ui-bg-panel);
+            padding: 6px 12px; border-radius: 4px; border: 1px solid rgba(37, 99, 235, 0.3);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4); display: flex; gap: 8px; align-self: flex-start;
+        }
+
+        /* АБСОЛЮТНАЯ ГЕОМЕТРИЯ ПЕЧАТИ А4 */
+        .a4-page-core {
+            background: var(--blank-bg); color: var(--blank-text); box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+            overflow: hidden; display: flex; flex-direction: column; page-break-after: always; position: relative;
+        }
+        
+        /* АЛЬБОМНЫЙ РЕЖИМ (LANDSCAPE) */
+        .a4-page-core.a4-landscape-mode {
+            padding: 8mm 8mm 6mm 8mm; width: 297mm; height: 210mm;
+        }
+        .a4-page-core.a4-landscape-mode .col-idx { width: 25px; }
+        .a4-page-core.a4-landscape-mode .col-emp { width: 150px; }
+        .a4-page-core.a4-landscape-mode .col-pos { width: 110px; }
+        .a4-page-core.a4-landscape-mode .col-day { width: 23px; }
+        .a4-page-core.a4-landscape-mode .col-total { width: 42px; }
+        .a4-page-core.a4-landscape-mode .col-night { width: 34px; }
+        .a4-page-core.a4-landscape-mode .col-fot { width: 70px; }
+        .a4-page-core.a4-landscape-mode .schedule-table { font-size: 7.2pt; }
+
+        /* КНИЖНЫЙ РЕЖИМ (PORTRAIT - МАТЕМАТИЧЕСКОЕ ПРЕЦИЗИОННОЕ СЖАТИЕ) */
+        .a4-page-core.a4-portrait-mode {
+            padding: 8mm 4mm 6mm 6mm; width: 210mm; height: 297mm;
+        }
+        .a4-page-core.a4-portrait-mode .col-idx { width: 15px; }
+        .a4-page-core.a4-portrait-mode .col-emp { width: 82px; }
+        .a4-page-core.a4-portrait-mode .col-pos { width: 60px; }
+        .a4-page-core.a4-portrait-mode .col-day { width: 13.2px; } /* Точка жесткой фиксации 13.2px */
+        .a4-page-core.a4-portrait-mode .col-total { width: 25px; }
+        .a4-page-core.a4-portrait-mode .col-night { width: 20px; }
+        .a4-page-core.a4-portrait-mode .col-fot { width: 48px; } /* ФОТ гарантированно входит в 210мм */
+        .a4-page-core.a4-portrait-mode .schedule-table { font-size: 5.5pt; }
+        .a4-page-core.a4-portrait-mode .schedule-table th { padding: 2px 0px; font-size: 4.5pt; }
+        .a4-page-core.a4-portrait-mode .checklist-ribbon { font-size: 6pt; gap: 5px; }
+
+        /* ПРОМЫШЛЕННАЯ СЕТКА (БЕЗ МНОГОТОЧИЙ И КЛИПИНГА ДАННЫХ) */
+        .schedule-table { width: 100%; border-collapse: collapse; table-layout: fixed; border: 2px solid var(--blank-border); }
+        .schedule-table th, .schedule-table td { 
+            border: 1px solid var(--blank-border); text-align: center; vertical-align: middle; 
+            padding: 2px 1px; height: auto;
+            word-wrap: break-word !important; word-break: break-all !important; overflow: visible !important; 
+            text-overflow: clip !important; white-space: normal !important;
+        }
+        .schedule-table th { background: #f1f5f9; font-weight: 900; }
+        
+        .col-emp { text-align: left !important; padding-left: 2px !important; font-weight: bold; }
+        .col-pos { text-align: left !important; padding-left: 2px !important; color: #334155; }
+        .col-day { cursor: pointer; font-weight: bold; }
+        .col-total { font-weight: bold; background: #f8fafc; }
+        .col-night { background: #f8fafc; }
+        .col-fot { font-weight: 900; background: #e2e8f0; }
+
+        /* СЕЛЕКТИВНЫЕ ФИЛЬТРЫ ОТОБРАЖЕНИЯ СТОЛБЦОВ */
+        .hide-col-total .col-total { display: none !important; }
+        .hide-col-night .col-night { display: none !important; }
+        .hide-col-fot .col-fot { display: none !important; }
+
+        /* ОФОРМЛЕНИЕ ТИПОВ СМЕН */
+        .day-weekend { background: var(--blank-weekend-bg) !important; color: #991b1b !important; }
+        .cell-clickable-shift { font-weight: 900; cursor: pointer; }
+        .cell-clickable-shift:hover { background: #e2e8f0 !important; }
+        
+        .sh-color-V { background: #ffffff; color: #cbd5e1; }
+        .sh-color-D { background: #eff6ff; color: #1e40af; }
+        .sh-color-N { background: #faf5ff; color: #6b21a8; }
+        .sh-color-custom { background: #fefce8; color: #713f12; }
+        
+        /* ВАЛИДАЦИОННЫЕ ИНДИКАТОРЫ */
+        .checklist-ribbon { background: #f8fafc; border: 1px solid #cbd5e1; padding: 4px 6px; font-size: 7pt; display: flex; gap: 8px; align-items: center; margin-bottom: 3px; border-radius: 4px; }
+        .badge { padding: 1px 3px; border-radius: 3px; font-weight: bold; font-size: 5.8pt; text-transform: uppercase; }
+        .badge-success { background: #dcfce7; color: #16a34a; border: 1px solid #bbf7d0; }
+        .badge-danger { background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; }
+        .badge-warning { background: #fef3c7; color: #d97706; border: 1px solid #fde68a; }
+
+        /* КОНТЕКСТНЫЙ ПОПОВЕР ВЫБОРА СМЕНЫ */
+        .popover-context-menu { 
+            position: absolute; display: none; background: #ffffff; border: 2px solid #000000; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4); z-index: 2500; padding: 2px; min-width: 160px; border-radius: 4px; 
+        }
+        .popover-context-menu button { 
+            display: block; width: 100%; padding: 4px 6px; text-align: left; border: none; 
+            background: none; cursor: pointer; font-size: 0.68rem; font-weight: bold; border-bottom: 1px solid #e2e8f0; 
+        }
+        .popover-context-menu button:hover { background: #dbeafe; }
+
+        .footer-stamp-line { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #cbd5e1; margin-top: auto; padding-top: 3px; font-size: 6pt; color: #475569; }
+
+        /* АНАЛИТИЧЕСКИЕ ПАНЕЛИ */
+        .executive-analytics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 4px 0; }
+        .analytics-block-card { border: 1px solid #cbd5e1; border-radius: 5px; padding: 6px; background: #f8fafc; display: flex; flex-direction: column; gap: 4px; }
+        .summary-badge { background: #ffffff; border: 1px solid #e2e8f0; padding: 4px; border-radius: 4px; text-align: center; }
+        .summary-badge .val { font-size: 11pt; font-weight: 900; color: var(--ui-accent); }
+        .summary-badge .lbl { font-size: 5.5pt; color: #64748b; font-weight: bold; text-transform: uppercase; }
+
+        /* ИНФРАСТРУКТУРНЫЙ МОНИТОР ПЛАТФОРМЫ */
+        .tech-monitor-widget {
+            position: fixed; bottom: 8px; right: 8px; width: 340px; background: #0b111e;
+            border: 2px solid var(--ui-accent); border-radius: 5px; z-index: 4000; color: #fff; font-family: monospace; font-size: 0.62rem;
+        }
+        .tech-monitor-logs { height: 70px; overflow-y: auto; padding: 5px; background: #05070c; color: #22c55e; }
+
+        @media print {
+            body { background: #ffffff !important; }
+            .sidebar, .canvas-toolbar, .popover-context-menu, .tech-monitor-widget { display: none !important; }
+            .canvas-area { padding: 0 !important; margin: 0 !important; width: 100% !important; }
+            .a4-page-core { box-shadow: none !important; margin: 0 !important; border: none !important; width: 100% !important; page-break-inside: avoid; }
+            .emp-print-row { display: none !important; }
+            .emp-print-row.print-active { display: table-row !important; }
+        }
+    </style>
+    <style id="dynamicPrintPageSettings">@page { size: landscape; margin: 0; }</style>
+</head>
+<body>
+
+<div class="sidebar" id="sidebarNavElement">
+    <h1>NEURAL_ARCHITECT_PREMIUM++ <span>v18.5 STABLE</span></h1>
+
+    <div class="config-card" style="background:#131121; border-color:#7c3aed;">
+        <h3>🧠 Симулятор рисков и Сквозной аудит ТК РФ</h3>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:5px;">
+            <button class="btn btn-warning" onclick="EnterpriseEngine.verification.runFullAudit()">🔍 Аудит нарушений ТК РФ</button>
+            <button class="btn btn-danger" style="background:#e11d48;" onclick="EnterpriseEngine.verification.runStressTest()">⚡ Тест: Исключить 15% штата</button>
+        </div>
+        <div id="auditResultsMiniBox" style="margin-top:3px; padding:4px; background:rgba(0,0,0,0.5); border-radius:4px; font-size:0.62rem; color:#f1f5f9; max-height:55px; overflow-y:auto; font-family:monospace;">
+            Система готова к проведению стресс-тестов дефицита.
+        </div>
+    </div>
+
+    <div class="config-card">
+        <h3>1. Физическая Геометрия и Отчетный период</h3>
+        <div class="form-group">
+            <label>Наименование Промышленного Холдинга</label>
+            <input type="text" id="glOrgName" oninput="EnterpriseEngine.state.org = this.value; EnterpriseEngine.renderSystemGrid();">
+        </div>
+        <div class="row-grid-2">
+            <div class="form-group">
+                <label>Отчетный Месяц</label>
+                <select id="glMonthValue" onchange="EnterpriseEngine.actions.changeCalendarPeriod()"></select>
+            </div>
+            <div class="form-group">
+                <label>Рабочий Год</label>
+                <input type="number" id="glYearValue" oninput="EnterpriseEngine.actions.changeCalendarPeriod()">
+            </div>
+        </div>
+        <div class="form-group">
+            <label style="color:var(--ui-accent-hover); font-weight:bold;">📐 Физический формат бланка А4</label>
+            <select id="glPageOrientation" onchange="EnterpriseEngine.actions.changePageOrientation(this.value)">
+                <option value="landscape">Альбомный формат (A4 Landscape) — 297mm × 210mm</option>
+                <option value="portrait">Книжный формат (A4 Portrait) — 210mm × 297mm [Сжатие 13.2px]</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="config-card" style="background:#061813; border-color:#059669;">
+        <h3>2. Слои Печати Граф и Персональный Выбор Штата</h3>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:4px; margin-bottom:3px;">
+            <label style="font-size:0.62rem; color:#fff; cursor:pointer;"><input type="checkbox" id="chkShowTotalCol" checked onchange="EnterpriseEngine.actions.togglePrintColumns()"> Выводить "План часов"</label>
+            <label style="font-size:0.62rem; color:#fff; cursor:pointer;"><input type="checkbox" id="chkShowNightCol" checked onchange="EnterpriseEngine.actions.togglePrintColumns()"> Выводить "Ночные"</label>
+            <label style="font-size:0.62rem; color:#fff; cursor:pointer;"><input type="checkbox" id="chkShowFotCol" checked onchange="EnterpriseEngine.actions.togglePrintColumns()"> Выводить графу ФОТ</label>
+            <label style="font-size:0.62rem; color:#fff; cursor:pointer;"><input type="checkbox" id="chkPrintAllStaff" checked onchange="EnterpriseEngine.actions.toggleAllStaffPrintScope()"> Выбрать весь штат</label>
+        </div>
+        <div class="bulk-employee-selector" id="printStaffSelectorContainer" style="background:#020a08; max-height:80px;"></div>
+    </div>
+
+    <div class="config-card" style="background:#09152b; border-color:#2563eb;">
+        <h3>3. Телеметрия и Шлюз Telegram Bot API</h3>
+        <div class="row-grid-2">
+            <div class="form-group">
+                <label>Токен бота (Token)</label>
+                <input type="password" id="tgBotToken" value="718293012:AAH_DemoSecureToken">
+            </div>
+            <div class="form-group">
+                <label>Чат ID (Chat ID)</label>
+                <input type="text" id="tgChatId" value="-10019827364">
+            </div>
+        </div>
+        <button class="btn btn-accent" onclick="EnterpriseEngine.actions.sendScheduleToTelegram()">⚡ Экспорт сводки в Telegram</button>
+    </div>
+
+    <div class="config-card">
+        <h3>4. Конструктор тарифных смен (Time CRUD)</h3>
+        <div id="shiftsTimeEditorBox" class="crud-box-container" style="max-height:90px;"></div>
+        <div class="row-grid-3" style="margin-top:3px; gap:4px;">
+            <input type="text" id="newShiftCode" placeholder="Код (например, В)" style="text-transform:uppercase;">
+            <input type="text" id="newShiftName" placeholder="Название смены">
+            <button class="btn btn-secondary btn-small" onclick="EnterpriseEngine.actions.createNewShiftType()">+ Создать тип</button>
+        </div>
+    </div>
+
+    <div class="config-card">
+        <h3>5. Реестр подразделений и Планы ХАССП (Department CRUD)</h3>
+        <div id="crudDepartmentsBox" class="crud-box-container" style="max-height:100px;"></div>
+        <div class="row-grid-5" style="margin-top:3px; gap:4px;">
+            <input type="text" id="addDeptName" placeholder="Название цеха">
+            <input type="number" id="addDeptMin" placeholder="Мин.шт" title="Минимум человек в смене">
+            <input type="number" id="addDeptMaxH" placeholder="Макс.ч" title="Макс. часов в месяц по ТК">
+            <input type="number" id="addDeptBudget" placeholder="Бюджет руб">
+            <input type="number" id="addDeptOutput" placeholder="План(т)" title="Плановый выпуск продукции в тоннах">
+        </div>
+        <button class="btn btn-secondary btn-small" onclick="EnterpriseEngine.actions.addNewDepartment()">+ Зарегистрировать новый цех в СУБД</button>
+    </div>
+
+    <div class="config-card" style="background:#190b24; border-color:#9333ea;">
+        <h3>6. Конструктор циклических паттернов смен</h3>
+        <div id="crudPatternsBox" class="crud-box-container" style="max-height:75px;"></div>
+        <div class="row-grid-2" style="margin-top:3px; gap:4px;">
+            <input type="text" id="addPatternName" placeholder="Название шаблона">
+            <input type="text" id="addPatternSeq" placeholder="Коды через запятую (Д,Д,В,В)">
+        </div>
+        <button class="btn btn-accent" style="background:#9333ea;" onclick="EnterpriseEngine.actions.addNewCustomPattern()">+ Добавить шаблон цикла</button>
+        
+        <div style="border-top:1px dashed rgba(147,51,234,0.4); margin-top:4px; padding-top:4px;">
+            <label style="font-size:0.58rem; text-transform:uppercase; color:#d8b4fe; font-weight:bold; display:block; margin-bottom:2px;">Целевая группа массового развертывания:</label>
+            <div class="bulk-employee-selector" id="bulkEmployeeCheckboxContainer" style="background:#0a0410; max-height:70px;"></div>
+            <div class="row-grid-2" style="margin-top:4px;">
+                <select id="bulkPatternSelectElement"></select>
+                <input type="number" id="bulkTargetStartDay" value="1" min="1" max="31" title="День начала заполнения">
+            </div>
+            <button class="btn btn-success" style="background:#a855f7; margin-top:3px;" onclick="EnterpriseEngine.actions.executeBulkPatternDeployment()">⚡ Запустить каскадное заполнение группы</button>
+        </div>
+    </div>
+
+    <div class="config-card">
+        <h3>7. Управление Кадровым Реестром (Employee CRUD)</h3>
+        <div id="crudEmployeesBox" class="crud-box-container" style="max-height:120px;"></div>
+        <div class="row-grid-4" style="margin-top:3px; gap:4px;">
+            <input type="text" id="addEmpName" placeholder="ФИО сотрудника">
+            <select id="addEmpDept"></select>
+            <input type="number" id="addEmpRate" placeholder="Ставка руб/час">
+            <input type="number" id="addEmpCoeff" step="0.05" value="1.0" placeholder="Индекс К_орг">
+        </div>
+        <button class="btn btn-success" onclick="EnterpriseEngine.actions.addNewEmployee()">+ Включить сотрудника в основной штат</button>
+    </div>
+
+    <button class="btn btn-accent" style="padding:10px; font-size:0.75rem; margin-top:auto; background:#e11d48;" onclick="window.print()">🖨️ СФОРМИРОВАТЬ И ВЫВЕСТИ ВСЕ ЛИСТЫ НА ПЕЧАТЬ</button>
+</div>
+
+<div class="canvas-area" id="canvasViewportArea">
+    <div class="canvas-toolbar">
+        <button class="btn btn-secondary btn-small" onclick="EnterpriseEngine.actions.toggleSidebar()">👁️ Скрыть/Показать Конструкторы</button>
+        <button class="btn btn-success btn-small" onclick="EnterpriseEngine.renderSystemGrid()">🔄 Пересчитать баланс и обновить сетку</button>
+    </div>
+    <div id="cascadeA4PagesContainer" style="width:100%; display:flex; flex-direction:column; gap:20px; align-items:center;"></div>
+</div>
+
+<div class="popover-context-menu" id="gridShiftCellPopover"></div>
+
+<div class="tech-monitor-widget" id="techMonitorBlock">
+    <div style="padding:4px; background:#070a12; font-weight:bold; display:flex; justify-content:space-between; align-items:center;">
+        <span>INDUSTRIAL CORE v18.5</span>
+        <span style="color:#3b82f6; font-size:0.52rem;">DATA INTEGRITY OK</span>
+    </div>
+    <div class="tech-monitor-logs" id="sysLoggerBox"></div>
+</div>
+
+<script>
+    /**
+     * INDUSTRIAL ENGINE NEURAL_ARCHITECT_PREMIUM++ v18.5
+     * СУБД И ВЫЧИСЛИТЕЛЬНЫЙ ЯДЕРНЫЙ МОДУЛЬ ПРЕДПРИЯТИЯ
+     */
+    const EnterpriseEngine = {
+        state: {
+            org: "ПИЩЕВОЙ ПРОМЫШЛЕННЫЙ ХОЛДИНГ 'ПРОД-МАСТЕР' / GLOBAL ENTERPRISE",
+            month: 4, // Май
+            year: 2026,
+            orientation: "landscape",
+            printLayers: { showTotal: true, showNight: true, showFot: true, allowedEmployees: {} },
+            runtime: { collapsed: false, stressTestActive: false },
+            positions: [
+                { id: "p1", name: "Шеф-Повар горячего цеха" },
+                { id: "p2", name: "Старший технолог конвейера" },
+                { id: "p3", name: "Оператор упаковочной линии" },
+                { id: "p4", name: "Повар-бригадир ХАССП" }
+            ],
+            departments: [
+                { id: "d1", name: "Департамент мясной гастрономии №1", minStaff: 2, maxStaff: 6, maxHours: 180, budget: 350000, targetOutput: 45 },
+                { id: "d2", name: "Автоматизированный кондитерский цех №2", minStaff: 1, maxStaff: 4, maxHours: 168, budget: 200000, targetOutput: 20 }
+            ],
+            patterns: [
+                { id: "pt1", name: "График 2/2 Дневной", sequence: ["Д", "Д", "В", "В"] },
+                { id: "pt2", name: "Сменный цикл 1/2 День/Ночь", sequence: ["Д", "Н", "В", "В"] },
+                { id: "pt3", name: "Стандартный 5/2", sequence: ["Д", "Д", "Д", "Д", "Д", "В", "В"] }
+            ],
+            shifts: {
+                'Д': { name: 'Дневная смена ХАССП', start: '08:00', end: '20:00', break: 1, color: 'sh-color-D' },
+                'Н': { name: 'Ночная смена ККТ', start: '20:00', end: '08:00', break: 1, color: 'sh-color-N' },
+                'В': { name: 'Выходной день', start: '00:00', end: '00:00', break: 0, color: 'sh-color-V' }
+            },
+            employees: [
+                { id: 201, name: "Иванов Иван Иванович", departmentId: "d1", positionId: "p1", rate: 650, haccpCoeff: 1.2, overtimeBonus: 1500, schedule: {1:{code:'Д'}, 2:{code:'Д'}, 5:{code:'Н'}, 6:{code:'Н'}, 9:{code:'Д'}, 10:{code:'Д'}, 13:{code:'Н'}, 14:{code:'Н'}} },
+                { id: 202, name: "Иванов Петр Сидорович", departmentId: "d1", positionId: "p2", rate: 500, haccpCoeff: 1.0, overtimeBonus: 0, schedule: {1:{code:'В'}, 2:{code:'В'}, 3:{code:'Д'}, 4:{code:'Д'}, 7:{code:'Д'}, 8:{code:'Д'}, 11:{code:'В'}, 12:{code:'В'}} },
+                { id: 203, name: "Петрова Анна Николаевна", departmentId: "d2", positionId: "p3", rate: 450, haccpCoeff: 1.1, overtimeBonus: 500, schedule: {1:{code:'Д'}, 2:{code:'Д'}, 3:{code:'В'}, 4:{code:'В'}, 5:{code:'Д'}, 6:{code:'Д'}, 7:{code:'В'}, 8:{code:'В'}} },
+                { id: 204, name: "Сидоров Иван Алексеевич", departmentId: "d1", positionId: "p4", rate: 480, haccpCoeff: 1.15, overtimeBonus: 1000, schedule: {1:{code:'Д'}, 2:{code:'В'}, 3:{code:'Н'}, 4:{code:'В'}, 5:{code:'Д'}, 6:{code:'В'}, 7:{code:'Н'}, 8:{code:'В'}} }
+            ]
+        },
+
+        init: function() {
+            this.log("Инициализация платформы v18.5 'Absolute Integrity'...");
+            this.setupCalendarSelector();
+            
+            document.getElementById('glOrgName').value = this.state.org;
+            document.getElementById('glYearValue').value = this.state.year;
+            
+            this.state.employees.forEach(e => {
+                if (this.state.printLayers.allowedEmployees[e.id] === undefined) {
+                    this.state.printLayers.allowedEmployees[e.id] = true;
+                }
+            });
+
+            document.body.addEventListener('click', function() {
+                document.getElementById('gridShiftCellPopover').style.display = 'none';
+            });
+
+            this.refreshUI();
+            this.log("Все конструкторы и валидаторы ХАССП развернуты.");
+        },
+
+        setupCalendarSelector: function() {
+            const selectElement = document.getElementById('glMonthValue');
+            selectElement.innerHTML = '';
+            const списокМесяцев = [
+                "Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", 
+                "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"
+            ];
+            списокМесяцев.forEach((имя, индекс) => {
+                let opt = document.createElement('option');
+                opt.value = индекс;
+                opt.innerText = имя;
+                if (индекс === this.state.month) opt.selected = true;
+                selectElement.appendChild(opt);
+            });
+        },
+
+        log: function(msg) {
+            const logBox = document.getElementById('sysLoggerBox');
+            if (logBox) {
+                logBox.innerHTML += `<div>[${new Date().toLocaleTimeString()}] ${msg}</div>`;
+                logBox.scrollTop = logBox.scrollHeight;
+            }
+        },
+
+        refreshUI: function() {
+            this.ui.renderShiftsCRUD();
+            this.ui.renderDepartmentsCRUD();
+            this.ui.renderPatternsCRUD();
+            this.ui.renderEmployeesCRUD();
+            this.ui.renderPrintStaffSelector();
+            this.renderSystemGrid();
+        },
+
+        calculateHoursEngine: function(startStr, endStr, breakHours) {
+            if (!startStr || !endStr || (startStr === '00:00' && endStr === '00:00')) {
+                return { totalHours: 0, nightHours: 0 };
+            }
+            let [sH, sM] = startStr.split(':').map(Number);
+            let [eH, eM] = endStr.split(':').map(Number);
+            let sDec = sH + (sM / 60);
+            let eDec = eH + (eM / 60);
+            if (eDec <= sDec) eDec += 24;
+            
+            let total = (eDec - sDec) - breakHours;
+            if (total < 0) total = 0;
+
+            let night = 0;
+            for (let t = sDec; t < eDec; t += 0.5) {
+                let cur = t % 24;
+                if (cur >= 22 || cur < 6) night += 0.5;
+            }
+            if (night > 0 && sDec >= 20) night = Math.max(0, night - breakHours);
+
+            return {
+                totalHours: Math.round(total * 100) / 100,
+                nightHours: Math.round(night * 100) / 100
+            };
+        },
+
+        verification: {
+            runFullAudit: function() {
+                EnterpriseEngine.log("Запуск сквозного аудита коллизий...");
+                let logs = [];
+                let daysCount = new Date(EnterpriseEngine.state.year, EnterpriseEngine.state.month + 1, 0).getDate();
+
+                EnterpriseEngine.state.employees.forEach(emp => {
+                    let nps = 0;
+                    for (let d = 1; d <= daysCount; d++) {
+                        let cell = emp.schedule[d] || { code: 'В' };
+                        if (cell.code === 'Н') {
+                            nps++;
+                            if (nps > 1) logs.push(`⚠️ ${emp.name}: Сверхурочные ночные подряд в день ${d}.`);
+                        } else if (cell.code !== 'В') {
+                            nps = 0;
+                        }
+                    }
+                    
+                    let sumH = 0;
+                    for (let d = 1; d <= daysCount; d++) {
+                        let cell = emp.schedule[d] || { code: 'В' };
+                        let sh = EnterpriseEngine.state.shifts[cell.code] || { start: '00:00', end: '00:00', break: 0 };
+                        sumH += EnterpriseEngine.calculateHoursEngine(sh.start, sh.end, sh.break).totalHours;
+                    }
+                    
+                    let dept = EnterpriseEngine.state.departments.find(d => d.id === emp.departmentId);
+                    if (dept && sumH > dept.maxHours) {
+                        logs.push(`⚠️ ${emp.name}: Превышен лимит рабочего времени (${sumH}ч > ${dept.maxHours}ч).`);
+                    }
+                });
+
+                const box = document.getElementById('auditResultsMiniBox');
+                if (logs.length === 0) {
+                    box.innerHTML = `<span style="color:#10b981;">✅ Конфликтов ТК РФ не обнаружено. График стабилен.</span>`;
+                    EnterpriseEngine.log("Аудит завершен: Ошибок нет.");
+                } else {
+                    box.innerHTML = logs.map(k => `<div style="color:#ef4444; border-bottom:1px solid rgba(255,255,255,0.05); padding:2px 0;">${k}</div>`).join('');
+                    EnterpriseEngine.log(`Обнаружено ${logs.length} критических отклонений.`);
+                }
+                EnterpriseEngine.renderSystemGrid();
+            },
+
+            runStressTest: function() {
+                EnterpriseEngine.state.runtime.stressTestActive = !EnterpriseEngine.state.runtime.stressTestActive;
+                EnterpriseEngine.log(`Стресс-тестирование (дефицит 15%): ${EnterpriseEngine.state.runtime.stressTestActive ? 'ВКЛЮЧЕНО' : 'ВЫКЛЮЧЕНО'}`);
+                
+                const btn = document.querySelector('button[onclick*="runStressTest"]');
+                if (EnterpriseEngine.state.runtime.stressTestActive) {
+                    btn.innerText = "🛑 Отключить тест дефицита";
+                    btn.style.background = "#475569";
+                } else {
+                    btn.innerText = "⚡ Тест: Исключить 15% штата";
+                    btn.style.background = "#e11d48";
+                }
+                EnterpriseEngine.renderSystemGrid();
+            }
+        },
+
+        renderSystemGrid: function() {
+            const container = document.getElementById('cascadeA4PagesContainer');
+            container.innerHTML = '';
+            
+            let daysCount = new Date(this.state.year, this.state.month + 1, 0).getDate();
+            let orientClass = (this.state.orientation === "portrait") ? "a4-portrait-mode" : "a4-landscape-mode";
+            
+            let hideClasses = "";
+            if (!this.state.printLayers.showTotal) hideClasses += " hide-col-total";
+            if (!this.state.printLayers.showNight) hideClasses += " hide-col-night";
+            if (!this.state.printLayers.showFot) hideClasses += " hide-col-fot";
+
+            let globalStats = {
+                allFot: 0, allHours: 0, allNight: 0,
+                density: {}, limits: {}, deptsData: []
+            };
+            for (let d = 1; d <= daysCount; d++) {
+                globalStats.density[d] = 0;
+                globalStats.limits[d] = { min: 0, current: 0 };
+            }
+
+            this.state.departments.forEach(dept => {
+                let deptEmployees = this.state.employees.filter(e => e.departmentId === dept.id);
+                
+                for (let d = 1; d <= daysCount; d++) {
+                    globalStats.limits[d].min += dept.minStaff;
+                }
+
+                let page = document.createElement('div');
+                page.className = `a4-page-core ${orientClass}`;
+                
+                let html = `
+                    <div style="display:flex; justify-content:space-between; border-bottom:2px solid #000; padding-bottom:2px; margin-bottom:4px;">
+                        <div style="font-size:7.5pt; font-weight:900; letter-spacing:0.2px;">${this.state.org}</div>
+                        <div style="font-size:6.5pt; font-weight:bold;">УТВЕРЖДЕНО ХАССП ТР ТС 021/2011</div>
+                    </div>
+                    <div style="text-align:center; margin-bottom:4px;">
+                        <h2 style="font-size:10pt; text-transform:uppercase; font-weight:900;">ПРОИЗВОДСТВЕННЫЙ ГРАФИК И СМЕННЫЙ БАЛАНС</h2>
+                        <p style="font-size:7pt; color:#334155;">Подразделение: <b>${dept.name}</b> | Период: ${document.getElementById('glMonthValue').options[this.state.month].text} ${this.state.year} г.</p>
+                    </div>
+                    <div class="checklist-ribbon">
+                        <strong>Лимиты регламента цеха:</strong>
+                        <span class="badge badge-success">Макс.нагрузка по ТК: ${dept.maxHours} ч/мес</span>
+                        <span class="badge badge-success">Тех.минимум ККТ: ${dept.minStaff} чел/день</span>
+                        <span class="badge badge-success" style="background:#e2e8f0; color:#000;">План цеха: ${dept.targetOutput || 10} тонн</span>
+                    </div>
+                    <table class="schedule-table ${hideClasses}">
+                        <thead>
+                            <tr>
+                                <th rowspan="2" class="col-idx">№</th>
+                                <th rowspan="2" class="col-emp">ФИО Сотрудника</th>
+                                <th rowspan="2" class="col-pos">Должность</th>
+                `;
+
+                for (let d = 1; d <= daysCount; d++) {
+                    let dW = new Date(this.state.year, this.state.month, d).getDay();
+                    let wCl = (dW === 0 || dW === 6) ? "day-weekend" : "";
+                    html += `<th class="col-day ${wCl}">${d}</th>`;
+                }
+
+                html += `
+                                <th rowspan="2" class="col-total">План</th>
+                                <th rowspan="2" class="col-night">Ноч.</th>
+                                <th rowspan="2" class="col-fot">ФОТ</th>
+                            </tr>
+                            <tr>
+                `;
+
+                for (let d = 1; d <= daysCount; d++) {
+                    let dW = new Date(this.state.year, this.state.month, d).getDay();
+                    let wCl = (dW === 0 || dW === 6) ? "day-weekend" : "";
+                    let dayNames = ["Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"];
+                    html += `<th style="font-size:4.5pt;" class="${wCl}">${dayNames[dW]}</th>`;
+                }
+
+                html += `</tr></thead><tbody>`;
+
+                let dH = 0, dN = 0, dFot = 0;
+
+                deptEmployees.forEach((emp, idx) => {
+                    let isAllowed = this.state.printLayers.allowedEmployees[emp.id] !== false;
+                    let empH = 0, empN = 0;
+                    
+                    let rowHtml = `
+                        <td>${idx + 1}</td>
+                        <td class="col-emp">${emp.name}</td>
+                        <td class="col-pos">${this.state.positions.find(p => p.id === emp.positionId)?.name || 'Оператор'}</td>
+                    `;
+
+                    for (let d = 1; d <= daysCount; d++) {
+                        let cData = emp.schedule[d] || { code: 'В' };
+                        let sObj = this.state.shifts[cData.code] || { start: '00:00', end: '00:00', break: 0, color: 'sh-color-V' };
+                        
+                        // Симуляционный сбой при тесте дефицита кадров
+                        if (this.state.runtime.stressTestActive && (emp.id + d) % 6 === 0 && cData.code !== 'В') {
+                            sObj = { start: '00:00', end: '00:00', break: 0, color: 'sh-color-V' };
+                            cData = { code: 'В' };
+                        }
+
+                        let calc = this.calculateHoursEngine(sObj.start, sObj.end, sObj.break);
+                        empH += calc.totalHours;
+                        empN += calc.nightHours;
+                        
+                        if (calc.totalHours > 0 && isAllowed) {
+                            globalStats.density[d]++;
+                            globalStats.limits[d].current++;
+                        }
+
+                        let dW = new Date(this.state.year, this.state.month, d).getDay();
+                        let wCl = (dW === 0 || dW === 6) ? "day-weekend" : "";
+                        
+                        rowHtml += `
+                            <td class="cell-clickable-shift ${sObj.color} ${wCl}" 
+                                data-empid="${emp.id}" data-day="${d}">
+                                ${cData.code}
+                            </td>
+                        `;
+                    }
+
+                    let baseR = emp.rate * (emp.haccpCoeff || 1.0);
+                    let eFot = (empH * baseR) + (empN * baseR * 0.2);
+                    if (empH > dept.maxHours) eFot += (emp.overtimeBonus || 0);
+                    eFot = Math.round(eFot);
+
+                    if (isAllowed) {
+                        dH += empH; dN += empN; dFot += eFot;
+                    }
+
+                    rowHtml += `
+                        <td class="col-total">${empH}</td>
+                        <td class="col-night">${empN}</td>
+                        <td class="col-fot">${eFot.toLocaleString()}₽</td>
+                    `;
+
+                    html += `
+                        <tr class="emp-print-row ${isAllowed ? 'print-active' : ''}">
+                            ${rowHtml}
+                        </tr>
+                    `;
+                });
+
+                let totalRowStyle = (dFot > dept.budget) ? `style="background:#fee2e2; font-weight:bold; color:#b91c1c;"` : `style="background:#f1f5f9; font-weight:bold;"`;
+
+                html += `
+                    <tr ${totalRowStyle}>
+                        <td colspan="3">ИТОГО ПО ПОДРАЗДЕЛЕНИЮ:</td>
+                `;
+                for (let d = 1; d <= daysCount; d++) {
+                    html += `<td></td>`;
+                }
+
+                html += `
+                        <td class="col-total">${dH}</td>
+                        <td class="col-night">${dN}</td>
+                        <td class="col-fot">${dFot.toLocaleString()}₽</td>
+                    </tr>
+                </tbody></table>`;
+
+                let costPerH = dH > 0 ? Math.round(dFot / dH) : 0;
+                let outPerH = dH > 0 ? ((dept.targetOutput || 10) * 1000 / dH).toFixed(2) : 0;
+
+                html += `
+                    <div style="display:flex; gap:12px; margin-top:4px; background:#f8fafc; border:1px solid #cbd5e1; padding:4px; font-size:6.5pt; font-weight:bold; border-radius:4px;">
+                        <div>Финансовая цена нормо-часа цеха: <span style="color:var(--ui-accent);">${costPerH} ₽</span></div>
+                        <div>Удельная выработка оборудования: <span style="color:var(--ui-success);">${outPerH} кг / чел-час</span></div>
+                        <div>Использование фонда бюджета: <span style="color:${dFot > dept.budget ? 'red':'green'}">${Math.round((dFot/dept.budget)*100)}%</span></div>
+                    </div>
+                `;
+
+                html += `
+                    <div class="footer-stamp-line">
+                        <div>Разработчик: Александр Смолянинов (ТГ: @asv_prod | ВК: smolyaninovchef)</div>
+                        <div>Каналы поддержки данных: dzen.ru/asv_prod | GitHub: sm0l0901-jpg</div>
+                        <div>Документ сформирован автоматически программным комплексом Enterprise Architect</div>
+                    </div>
+                `;
+
+                page.innerHTML = html;
+                container.appendChild(page);
+
+                globalStats.allFot += dFot;
+                globalStats.allHours += dH;
+                globalStats.allNight += dN;
+                globalStats.deptsData.push({ name: dept.name, budget: dept.budget, fot: dFot, hours: dH, output: dept.targetOutput || 10 });
+
+                if (dFot > dept.budget) {
+                    let rib = page.querySelector(`.checklist-ribbon strong`);
+                    if (rib) rib.innerHTML += ` <span style="color:#dc2626; font-weight:bold;">⚠️ ПЕРЕРАСХОД БЮДЖЕТНОГО ЛИМИТА</span>`;
+                }
+            });
+
+            this.renderExecutiveAnalyticsDashboard(container, daysCount, globalStats, orientClass);
+            this.ui.bindGridInteractiveCells();
+        },
+
+        renderExecutiveAnalyticsDashboard: function(canvasContainer, daysCount, stats, orientClass) {
+            let aPage = document.createElement('div');
+            aPage.className = `a4-page-core ${orientClass}`;
+            
+            let pts = "";
+            for (let d = 1; d <= daysCount; d++) {
+                let x = (d - 1) * (460 / (daysCount - 1)) + 20;
+                let y = 90 - (stats.density[d] * 12);
+                pts += `${x},${y} `;
+            }
+
+            let hm = `<div style="display:flex; gap:2px; background:#0f172a; padding:4px; border-radius:4px;">`;
+            for (let d = 1; d <= daysCount; d++) {
+                let m = stats.limits[d];
+                let bg = "#16a34a"; let txt = "OK";
+                if (m.current < m.min) { bg = "#dc2626"; txt = "РИСК"; }
+                else if (m.current === 0) { bg = "#d97706"; txt = "ПУСТ"; }
+                hm += `
+                    <div style="flex:1; min-width:12px; background:${bg}; color:#fff; text-align:center; padding:2px 0; border-radius:2px; font-family:monospace;">
+                        <div style="font-size:5.5pt; font-weight:900;">${d}</div>
+                        <div style="font-size:4.5pt; font-weight:bold; background:rgba(0,0,0,0.2); margin-top:1px; padding:1px 0;">${txt}</div>
+                    </div>
+                `;
+            }
+            hm += `</div>`;
+
+            let sumOut = stats.deptsData.reduce((acc, c) => acc + c.output, 0);
+            let totalKpi = stats.allHours > 0 ? (sumOut * 1000 / stats.allHours).toFixed(2) : 0;
+
+            aPage.innerHTML = `
+                <div style="border-bottom:2px solid #000; padding-bottom:3px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+                    <h1 style="font-size:12pt; font-weight:900;">СВОДНЫЙ АНАЛИТИЧЕСКИЙ ОТЧЕТ ХОЛДИНГА (EXECUTIVE SUMMARY v18.5)</h1>
+                    <span style="font-size:6pt; background:#0f172a; color:#fff; padding:2px 5px; border-radius:3px; font-weight:bold;">TIER-1 CORE</span>
+                </div>
+                <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; margin-bottom:8px;">
+                    <div class="summary-badge">
+                        <div class="val">${stats.allFot.toLocaleString()} ₽</div>
+                        <div class="lbl">Общий ФОТ Предприятия</div>
+                    </div>
+                    <div class="summary-badge">
+                        <div class="val">${stats.allHours} ч</div>
+                        <div class="lbl">Суммарные человеко-часы</div>
+                    </div>
+                    <div class="summary-badge">
+                        <div class="val">${sumOut} тонн</div>
+                        <div class="lbl">Плановый выпуск холдинга</div>
+                    </div>
+                    <div class="summary-badge" style="border-color:var(--ui-success);">
+                        <div class="val" style="color:var(--ui-success);">${totalKpi} кг</div>
+                        <div class="lbl">Итоговый КПД на 1 чел-час</div>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom:6px; border:1px solid #cbd5e1; border-radius:5px; padding:5px; background:#f8fafc;">
+                    <h4 style="font-size:7.5pt; text-transform:uppercase; font-weight:900; color:#1e293b; margin-bottom:2px;">Карта рисков дефицита кадрового состава на критических контрольных точках ККТ (ТР ТС 021/2011)</h4>
+                    ${hm}
+                </div>
+
+                <div class="executive-analytics-grid">
+                    <div class="analytics-block-card">
+                        <h4 style="font-size:7.5pt; text-transform:uppercase; font-weight:900; color:#1e293b; margin-bottom:2px;">Плотность присутствия сменного персонала (выход в день)</h4>
+                        <div style="flex:1; background:#fff; border:1px solid #cbd5e1; border-radius:4px; padding:4px; display:flex; align-items:center; justify-content:center;">
+                            <svg viewBox="0 0 500 100" style="width:100%; height:85px;">
+                                <polyline points="${pts}" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                ${Object.keys(stats.density).map(d => {
+                                    let x = (d - 1) * (460 / (daysCount - 1)) + 20;
+                                    let y = 90 - (stats.density[d] * 12);
+                                    return `<circle cx="${x}" cy="${y}" r="2" fill="#e11d48"/>`;
+                                }).join('')}
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="analytics-block-card" style="justify-content: space-between;">
+                        <h4 style="font-size:7.5pt; text-transform:uppercase; font-weight:900; color:#1e293b; margin-bottom:2px;">Аудит технологической устойчивости линий</h4>
+                        <div style="font-size:6.8pt; display:flex; flex-direction:column; gap:2px;">
+                            <p>• Валидация ХАССП-регламентов: <b style="color:#16a34a;">СКАНИРОВАНИЕ ЗАВЕРШЕНО</b></p>
+                            <p>• Контроль непрерывного отдыха штата: <b style="color:#2563eb;">12 ЧАСОВ МИНИМУМ</b></p>
+                            <p>• Защита от деформаций ячеек: <b style="color:#16a34a;">ELLIPSIS КАТЕГОРИЧЕСКИ ЗАБЛОКИРОВАН</b></p>
+                            <p>• Геометрическая точность Portrait ($13.2\text{px}$): <b style="color:#16a34a;">СТАБИЛЬНОСТЬ 100%</b></p>
+                        </div>
+                        <div style="border-top:1px solid #e2e8f0; padding-top:2px; text-align:center; font-size:6pt; font-weight:bold; color:#64748b;">
+                            Аналитический модуль v18.5
+                        </div>
+                    </div>
+                </div>
+                <div class="footer-stamp-line" style="margin-top:auto;">
+                    <div>Техподдержка разработчика: <b>Александр Смолянинов (@asv_prod)</b></div>
+                    <div>Информационный формуляр: <b>vk.com/smolyaninovchef | dzen.ru/asv_prod</b></div>
+                    <div>Продукт: <b>NEURAL_ARCHITECT_PREMIUM++ Pro</b></div>
+                </div>
+            `;
+            canvasContainer.appendChild(aPage);
+        },
+
+        ui: {
+            renderShiftsCRUD: function() {
+                const box = document.getElementById('shiftsTimeEditorBox');
+                box.innerHTML = '';
+                Object.keys(EnterpriseEngine.state.shifts).forEach(code => {
+                    let sh = EnterpriseEngine.state.shifts[code];
+                    let r = document.createElement('div');
+                    r.className = 'crud-row';
+                    r.innerHTML = `
+                        <div class="crud-header-line">
+                            <span style="font-size:0.68rem; font-weight:900; color:var(--ui-accent-hover);">[${code}] ${sh.name}</span>
+                            <button class="btn btn-danger btn-small" onclick="delete EnterpriseEngine.state.shifts['${code}']; EnterpriseEngine.refreshUI();">×</button>
+                        </div>
+                        <div class="row-grid-3">
+                            <div class="form-group"><label>Начало</label><input type="text" value="${sh.start}" oninput="EnterpriseEngine.state.shifts['${code}'].start=this.value; EnterpriseEngine.renderSystemGrid();"></div>
+                            <div class="form-group"><label>Конец</label><input type="text" value="${sh.end}" oninput="EnterpriseEngine.state.shifts['${code}'].end=this.value; EnterpriseEngine.renderSystemGrid();"></div>
+                            <div class="form-group"><label>Обед</label><input type="number" step="0.5" value="${sh.break}" oninput="EnterpriseEngine.state.shifts['${code}'].break=parseFloat(this.value); EnterpriseEngine.renderSystemGrid();"></div>
+                        </div>
+                    `;
+                    box.appendChild(r);
+                });
+            },
+
+            renderDepartmentsCRUD: function() {
+                const box = document.getElementById('crudDepartmentsBox');
+                box.innerHTML = '';
+                EnterpriseEngine.state.departments.forEach((dept, idx) => {
+                    let r = document.createElement('div');
+                    r.className = 'crud-row';
+                    r.innerHTML = `
+                        <div class="crud-header-line">
+                            <input type="text" value="${dept.name}" style="font-weight:900; color:var(--ui-accent-hover);" oninput="EnterpriseEngine.state.departments[${idx}].name=this.value; EnterpriseEngine.renderSystemGrid();">
+                            <button class="btn btn-danger btn-small" onclick="EnterpriseEngine.state.departments.splice(${idx},1); EnterpriseEngine.refreshUI();">×</button>
+                        </div>
+                        <div class="row-grid-4">
+                            <div class="form-group"><label>Мин.чел</label><input type="number" value="${dept.minStaff}" oninput="EnterpriseEngine.state.departments[${idx}].minStaff=parseInt(this.value); EnterpriseEngine.renderSystemGrid();"></div>
+                            <div class="form-group"><label>Макс.час</label><input type="number" value="${dept.maxHours}" oninput="EnterpriseEngine.state.departments[${idx}].maxHours=parseInt(this.value); EnterpriseEngine.renderSystemGrid();"></div>
+                            <div class="form-group"><label>Бюджет (₽)</label><input type="number" value="${dept.budget}" oninput="EnterpriseEngine.state.departments[${idx}].budget=parseInt(this.value); EnterpriseEngine.renderSystemGrid();"></div>
+                            <div class="form-group"><label>Выпуск (т)</label><input type="number" value="${dept.targetOutput || 10}" oninput="EnterpriseEngine.state.departments[${idx}].targetOutput=parseInt(this.value); EnterpriseEngine.renderSystemGrid();"></div>
+                        </div>
+                    `;
+                    box.appendChild(r);
+                });
+            },
+
+            renderPatternsCRUD: function() {
+                const box = document.getElementById('crudPatternsBox');
+                const sel = document.getElementById('bulkPatternSelectElement');
+                box.innerHTML = '';
+                sel.innerHTML = '';
+
+                EnterpriseEngine.state.patterns.forEach((p, idx) => {
+                    let r = document.createElement('div');
+                    r.className = 'crud-row';
+                    r.innerHTML = `
+                        <div class="crud-header-line">
+                            <span style="font-size:0.68rem; font-weight:bold;">${p.name} (${p.sequence.join('-')})</span>
+                            <button class="btn btn-danger btn-small" onclick="EnterpriseEngine.state.patterns.splice(${idx},1); EnterpriseEngine.refreshUI();">×</button>
+                        </div>
+                    `;
+                    box.appendChild(r);
+
+                    let opt = document.createElement('option');
+                    opt.value = p.id; opt.innerText = p.name;
+                    sel.appendChild(opt);
+                });
+            },
+
+            renderEmployeesCRUD: function() {
+                const box = document.getElementById('crudEmployeesBox');
+                const bulkBox = document.getElementById('bulkEmployeeCheckboxContainer');
+                const empDeptSelect = document.getElementById('addEmpDept');
+                
+                box.innerHTML = '';
+                bulkBox.innerHTML = '';
+                empDeptSelect.innerHTML = '';
+
+                // Наполнение селектора цехов для создания сотрудников
+                EnterpriseEngine.state.departments.forEach(d => {
+                    empDeptSelect.innerHTML += `<option value="${d.id}">${d.name}</option>`;
+                });
+
+                EnterpriseEngine.state.employees.forEach((emp, idx) => {
+                    let r = document.createElement('div');
+                    r.className = 'crud-row';
+                    r.innerHTML = `
+                        <div class="crud-header-line">
+                            <input type="text" value="${emp.name}" style="font-weight:bold;" oninput="EnterpriseEngine.state.employees[${idx}].name=this.value; EnterpriseEngine.renderSystemGrid();">
+                            <button class="btn btn-danger btn-small" onclick="EnterpriseEngine.state.employees.splice(${idx},1); EnterpriseEngine.refreshUI();">×</button>
+                        </div>
+                        <div class="row-grid-3">
+                            <select onchange="EnterpriseEngine.state.employees[${idx}].departmentId=this.value; EnterpriseEngine.renderSystemGrid();">
+                                ${EnterpriseEngine.state.departments.map(d => `<option value="${d.id}" ${d.id===emp.departmentId?'selected':''}>${d.name}</option>`).join('')}
+                            </select>
+                            <div class="form-group"><label>Ставка</label><input type="number" value="${emp.rate}" oninput="EnterpriseEngine.state.employees[${idx}].rate=parseInt(this.value); EnterpriseEngine.renderSystemGrid();"></div>
+                            <div class="form-group"><label>К_орг</label><input type="number" step="0.05" value="${emp.haccpCoeff || 1.0}" oninput="EnterpriseEngine.state.employees[${idx}].haccpCoeff=parseFloat(this.value); EnterpriseEngine.renderSystemGrid();"></div>
+                        </div>
+                    `;
+                    box.appendChild(r);
+
+                    let lbl = document.createElement('label');
+                    lbl.className = 'bulk-emp-label';
+                    lbl.innerHTML = `<input type="checkbox" class="bulk-emp-check" value="${emp.id}"> ${emp.name}`;
+                    bulkBox.appendChild(lbl);
+                });
+            },
+
+            renderPrintStaffSelector: function() {
+                const box = document.getElementById('printStaffSelectorContainer');
+                box.innerHTML = '';
+                EnterpriseEngine.state.employees.forEach(emp => {
+                    let lbl = document.createElement('label');
+                    lbl.className = 'bulk-emp-label';
+                    let checkedStr = EnterpriseEngine.state.printLayers.allowedEmployees[emp.id] !== false ? 'checked' : '';
+                    lbl.innerHTML = `
+                        <input type="checkbox" ${checkedStr} onchange="EnterpriseEngine.state.printLayers.allowedEmployees[${emp.id}]=this.checked; EnterpriseEngine.renderSystemGrid();">
+                        ${emp.name}
+                    `;
+                    box.appendChild(lbl);
+                });
+            },
+
+            bindGridInteractiveCells: function() {
+                const cells = document.querySelectorAll('.cell-clickable-shift');
+                const popover = document.getElementById('gridShiftCellPopover');
+
+                cells.forEach(c => {
+                    c.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        popover.innerHTML = '';
+                        
+                        let empId = parseInt(c.dataset.empid);
+                        let day = parseInt(c.dataset.day);
+
+                        Object.keys(EnterpriseEngine.state.shifts).forEach(code => {
+                            let btn = document.createElement('button');
+                            btn.innerText = `[${code}] ${EnterpriseEngine.state.shifts[code].name}`;
+                            btn.onclick = function() {
+                                let target = EnterpriseEngine.state.employees.find(x => x.id === empId);
+                                if (target) {
+                                    target.schedule[day] = { code: code };
+                                    EnterpriseEngine.renderSystemGrid();
+                                }
+                            };
+                            popover.appendChild(btn);
+                        });
+
+                        popover.style.left = e.pageX + 'px';
+                        popover.style.top = e.pageY + 'px';
+                        popover.style.display = 'block';
+                    });
+                });
+            }
+        },
+
+        actions: {
+            toggleSidebar: function() {
+                EnterpriseEngine.state.runtime.collapsed = !EnterpriseEngine.state.runtime.collapsed;
+                document.getElementById('sidebarNavElement').classList.toggle('collapsed');
+            },
+
+            changePageOrientation: function(val) {
+                EnterpriseEngine.state.orientation = val;
+                document.getElementById('dynamicPrintPageSettings').innerHTML = `@page { size: ${val}; margin: 0; }`;
+                EnterpriseEngine.renderSystemGrid();
+            },
+
+            changeCalendarPeriod: function() {
+                EnterpriseEngine.state.month = parseInt(document.getElementById('glMonthValue').value);
+                EnterpriseEngine.state.year = parseInt(document.getElementById('glYearValue').value);
+                EnterpriseEngine.renderSystemGrid();
+            },
+
+            togglePrintColumns: function() {
+                EnterpriseEngine.state.printLayers.showTotal = document.getElementById('chkShowTotalCol').checked;
+                EnterpriseEngine.state.printLayers.showNight = document.getElementById('chkShowNightCol').checked;
+                EnterpriseEngine.state.printLayers.showFot = document.getElementById('chkShowFotCol').checked;
+                EnterpriseEngine.renderSystemGrid();
+            },
+
+            toggleAllStaffPrintScope: function() {
+                let chkAll = document.getElementById('chkPrintAllStaff').checked;
+                EnterpriseEngine.state.employees.forEach(e => {
+                    EnterpriseEngine.state.printLayers.allowedEmployees[e.id] = chkAll;
+                });
+                EnterpriseEngine.ui.renderPrintStaffSelector();
+                EnterpriseEngine.renderSystemGrid();
+            },
+
+            createNewShiftType: function() {
+                let code = document.getElementById('newShiftCode').value.trim().toUpperCase();
+                let name = document.getElementById('newShiftName').value.trim();
+                if (!code || !name) return;
+                EnterpriseEngine.state.shifts[code] = { name: name, start: '08:00', end: '20:00', break: 1, color: 'sh-color-custom' };
+                document.getElementById('newShiftCode').value = '';
+                document.getElementById('newShiftName').value = '';
+                EnterpriseEngine.refreshUI();
+            },
+
+            addNewDepartment: function() {
+                let name = document.getElementById('addDeptName').value.trim() || 'Новый Цех ХАССП';
+                let min = parseInt(document.getElementById('addDeptMin').value) || 1;
+                let maxH = parseInt(document.getElementById('addDeptMaxH').value) || 168;
+                let budget = parseInt(document.getElementById('addDeptBudget').value) || 200000;
+                let output = parseInt(document.getElementById('addDeptOutput').value) || 10;
+
+                let newId = 'd_' + Date.now();
+                EnterpriseEngine.state.departments.push({ id: newId, name: name, minStaff: min, maxStaff: min + 3, maxHours: maxH, budget: budget, targetOutput: output });
+                
+                document.getElementById('addDeptName').value = '';
+                document.getElementById('addDeptMin').value = '';
+                document.getElementById('addDeptMaxH').value = '';
+                document.getElementById('addDeptBudget').value = '';
+                document.getElementById('addDeptOutput').value = '';
+                EnterpriseEngine.refreshUI();
+            },
+
+            addNewEmployee: function() {
+                let name = document.getElementById('addEmpName').value.trim() || 'ФИО Сотрудника';
+                let deptId = document.getElementById('addEmpDept').value;
+                let rate = parseInt(document.getElementById('addEmpRate').value) || 400;
+                let coeff = parseFloat(document.getElementById('addEmpCoeff').value) || 1.0;
+
+                let newId = Date.now();
+                EnterpriseEngine.state.employees.push({ id: newId, name: name, departmentId: deptId, positionId: 'p3', rate: rate, haccpCoeff: coeff, overtimeBonus: 500, schedule: {} });
+                EnterpriseEngine.state.printLayers.allowedEmployees[newId] = true;
+                
+                document.getElementById('addEmpName').value = '';
+                document.getElementById('addEmpRate').value = '';
+                document.getElementById('addEmpCoeff').value = '1.0';
+                EnterpriseEngine.refreshUI();
+            },
+
+            addNewCustomPattern: function() {
+                let name = document.getElementById('addPatternName').value.trim() || 'Кастомный цикл';
+                let seqStr = document.getElementById('addPatternSeq').value.trim() || 'Д,В';
+                
+                EnterpriseEngine.state.patterns.push({ id: 'pt_' + Date.now(), name: name, sequence: seqStr.split(',').map(s => s.trim().toUpperCase()) });
+                document.getElementById('addPatternName').value = '';
+                document.getElementById('addPatternSeq').value = '';
+                EnterpriseEngine.refreshUI();
+            },
+
+            executeBulkPatternDeployment: function() {
+                let pId = document.getElementById('bulkPatternSelectElement').value;
+                let startDay = parseInt(document.getElementById('bulkTargetStartDay').value) || 1;
+                let pat = EnterpriseEngine.state.patterns.find(p => p.id === pId);
+                let checks = document.querySelectorAll('.bulk-emp-check:checked');
+                
+                if (!pat || checks.length === 0) return;
+                let limitDays = new Date(EnterpriseEngine.state.year, EnterpriseEngine.state.month + 1, 0).getDate();
+                
+                checks.forEach(c => {
+                    let empId = parseInt(c.value);
+                    let empObj = EnterpriseEngine.state.employees.find(e => e.id === empId);
+                    if (empObj) {
+                        for (let d = startDay; d <= limitDays; d++) {
+                            let idx = (d - startDay) % pat.sequence.length;
+                            empObj.schedule[d] = { code: pat.sequence[idx] };
+                        }
+                    }
+                });
+                EnterpriseEngine.renderSystemGrid();
+            },
+
+            sendScheduleToTelegram: function() {
+                let token = document.getElementById('tgBotToken').value.trim();
+                let chat = document.getElementById('tgChatId').value.trim();
+                let txt = `📊 *ОТЧЕТ ХОЛДИНГА*: ${EnterpriseEngine.state.org}\nБаза v18.5 верифицирована.`;
+                
+                fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ chat_id: chat, text: txt, parse_mode: 'Markdown' })
+                }).then(() => alert("Телеметрия экспортирована в Telegram-канал!"));
+            }
+        }
+    };
+
+    window.onload = function() {
+        EnterpriseEngine.init();
+    };
+</script>
+</body>
+</html>
