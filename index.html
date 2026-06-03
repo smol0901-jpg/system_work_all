@@ -5,203 +5,94 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>System Work — Рабочие инструменты</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        :root {
-            --bg: #0d1117;
-            --surface: #161b22;
-            --surface2: #1c2128;
-            --border: #30363d;
-            --text: #e6edf3;
-            --text-muted: #8b949e;
-            --accent: #58a6ff;
-            --accent-hover: #4393e6;
-            --green: #3fb950;
-            --red: #f85149;
-            --yellow: #d29922;
-            --purple: #a371f7;
-        }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; }
-        
-        .app { display: flex; min-height: 100vh; }
-        .sidebar { width: 260px; background: var(--surface); border-right: 1px solid var(--border); padding: 20px; position: fixed; height: 100vh; overflow-y: auto; z-index: 10; }
-        .main { flex: 1; margin-left: 260px; padding: 24px; }
-        
-        .logo { font-size: 20px; font-weight: 700; color: var(--accent); margin-bottom: 32px; display: flex; align-items: center; gap: 10px; }
-        .logo-icon { width: 32px; height: 32px; background: linear-gradient(135deg, var(--accent), var(--purple)); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
-        
-        .nav-section { margin-bottom: 24px; }
-        .nav-section-title { font-size: 11px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; letter-spacing: 1px; }
-        .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 6px; cursor: pointer; color: var(--text-muted); transition: all 0.2s; margin-bottom: 4px; text-decoration: none; }
-        .nav-item:hover { background: rgba(88,166,255,0.1); color: var(--text); }
-        .nav-item.active { background: rgba(88,166,255,0.15); color: var(--accent); }
-        .nav-item .icon { font-size: 18px; width: 24px; text-align: center; }
-        .nav-item .badge { margin-left: auto; background: var(--surface2); padding: 2px 8px; border-radius: 10px; font-size: 12px; }
-        
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px; }
-        .header h1 { font-size: 28px; font-weight: 600; }
-        .header-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-        
-        .btn { padding: 10px 18px; border-radius: 6px; border: none; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px; }
-        .btn-primary { background: var(--accent); color: #fff; }
-        .btn-primary:hover { background: var(--accent-hover); }
-        .btn-secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
-        .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
-        .btn-danger { background: rgba(248,81,73,0.15); color: var(--red); }
-        .btn-danger:hover { background: rgba(248,81,73,0.25); }
-        .btn-success { background: rgba(63,185,80,0.15); color: var(--green); }
-        .btn-success:hover { background: rgba(63,185,80,0.25); }
-        .btn-sm { padding: 6px 12px; font-size: 13px; }
-        
-        .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 20px; }
-        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px; }
-        .card-title { font-size: 18px; font-weight: 600; }
-        .card-subtitle { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
-        
-        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px; }
-        .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; transition: transform 0.2s; }
-        .stat-card:hover { transform: translateY(-2px); }
-        .stat-value { font-size: 32px; font-weight: 700; color: var(--accent); }
-        .stat-label { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
-        .stat-icon { font-size: 24px; margin-bottom: 8px; }
-        
-        .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
-        .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px; }
-        
-        .table-wrap { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; font-size: 14px; }
-        th, td { padding: 14px 12px; text-align: left; border-bottom: 1px solid var(--border); }
-        th { color: var(--text-muted); font-weight: 500; font-size: 12px; text-transform: uppercase; background: var(--surface2); }
-        tr:hover { background: rgba(255,255,255,0.02); }
-        
-        .form-group { margin-bottom: 20px; }
-        .form-label { display: block; font-size: 14px; color: var(--text); margin-bottom: 8px; font-weight: 500; }
-        .form-label span { color: var(--text-muted); font-weight: 400; }
-        .form-input { width: 100%; padding: 12px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 14px; transition: border-color 0.2s; }
-        .form-input:focus { outline: none; border-color: var(--accent); }
-        .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
-        
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
-        .modal-overlay.show { display: flex; }
-        .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; }
-        .modal-header { padding: 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-        .modal-title { font-size: 20px; font-weight: 600; }
-        .modal-close { background: none; border: none; color: var(--text-muted); font-size: 28px; cursor: pointer; padding: 0; line-height: 1; }
-        .modal-close:hover { color: var(--text); }
-        .modal-body { padding: 24px; }
-        .modal-footer { padding: 20px 24px; border-top: 1px solid var(--border); display: flex; gap: 12px; justify-content: flex-end; flex-wrap: wrap; }
-        
-        .badge { padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 500; }
-        .badge-ok { background: rgba(63,185,80,0.15); color: var(--green); }
-        .badge-warn { background: rgba(210,153,34,0.15); color: var(--yellow); }
-        .badge-error { background: rgba(248,81,73,0.15); color: var(--red); }
-        .badge-info { background: rgba(88,166,255,0.15); color: var(--accent); }
-        .badge-purple { background: rgba(163,113,247,0.15); color: var(--purple); }
-        
-        .empty { text-align: center; padding: 60px 20px; color: var(--text-muted); }
-        .empty-icon { font-size: 56px; margin-bottom: 16px; }
-        .empty-text { font-size: 16px; margin-bottom: 8px; }
-        .empty-subtext { font-size: 14px; }
-        
-        .toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 2000; }
-        .toast { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 18px; margin-top: 10px; animation: slideIn 0.3s ease; display: flex; align-items: center; gap: 10px; }
-        .toast-success { border-left: 4px solid var(--green); }
-        .toast-error { border-left: 4px solid var(--red); }
-        .toast-info { border-left: 4px solid var(--accent); }
-        
-        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        
-        .help-card { background: linear-gradient(135deg, rgba(88,166,255,0.1), rgba(163,113,247,0.1)); border: 1px solid rgba(88,166,255,0.2); }
-        .help-card h3 { color: var(--accent); margin-bottom: 12px; }
-        .help-card ol { padding-left: 20px; color: var(--text-muted); }
-        .help-card li { margin-bottom: 8px; }
-        
-        .quick-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
-        .quick-action { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 16px; cursor: pointer; transition: all 0.2s; text-align: left; }
-        .quick-action:hover { border-color: var(--accent); transform: translateY(-2px); }
-        .quick-action-icon { font-size: 24px; margin-bottom: 8px; }
-        .quick-action-title { font-weight: 500; margin-bottom: 4px; }
-        .quick-action-desc { font-size: 12px; color: var(--text-muted); }
-        
-        .chart-container { position: relative; height: 300px; }
-        
-        .item-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 12px; transition: all 0.2s; }
-        .item-card:hover { border-color: var(--accent); }
-        .item-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-        .item-card-title { font-weight: 600; font-size: 15px; }
-        .item-card-body { color: var(--text-muted); font-size: 13px; }
-        .item-card-actions { display: flex; gap: 8px; margin-top: 12px; }
-        
-        .tag { display: inline-block; padding: 4px 10px; background: var(--surface2); border-radius: 6px; font-size: 12px; margin-right: 6px; margin-bottom: 6px; }
-        .tag-icon { margin-right: 4px; }
-        
-        @media (max-width: 768px) {
-            .sidebar { display: none; }
-            .main { margin-left: 0; padding: 16px; }
-            .header h1 { font-size: 22px; }
-            .grid-2 { grid-template-columns: 1fr; }
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="app">
         <aside class="sidebar">
             <div class="logo">
                 <div class="logo-icon">⚡</div>
-                System<span>Work</span>
+                <span>System<span class="accent">Work</span></span>
             </div>
             
-            <nav>
+            <nav class="nav">
                 <div class="nav-section">
-                    <div class="nav-section-title">Основное</div>
-                    <div class="nav-item active" data-page="dashboard"><span class="icon">📊</span>Обзор</div>
-                    <div class="nav-item" data-page="help"><span class="icon">❓</span>Как пользоваться</div>
+                    <div class="nav-title">Основное</div>
+                    <a class="nav-item active" data-page="dashboard">
+                        <span class="nav-icon">📊</span>Обзор
+                    </a>
+                    <a class="nav-item" data-page="help">
+                        <span class="nav-icon">❓</span>Как пользоваться
+                    </a>
                 </div>
                 
                 <div class="nav-section">
-                    <div class="nav-section-title">Журналы</div>
-                    <div class="nav-item" data-page="journals"><span class="icon">📋</span>Мои журналы <span class="badge" id="journalsCount">0</span></div>
-                    <div class="nav-item" data-page="constructor"><span class="icon">🛠️</span>Конструктор</div>
+                    <div class="nav-title">Конструктор</div>
+                    <a class="nav-item" data-page="constructor">
+                        <span class="nav-icon">🛠️</span>Конструктор форм
+                        <span class="nav-badge" id="templatesCount">0</span>
+                    </a>
+                    <a class="nav-item" data-page="forms">
+                        <span class="nav-icon">📝</span>Мои формы
+                        <span class="nav-badge" id="formsCount">0</span>
+                    </a>
                 </div>
                 
                 <div class="nav-section">
-                    <div class="nav-section-title">Производство</div>
-                    <div class="nav-item" data-page="production"><span class="icon">🏭</span>Цеха и склады</div>
-                    <div class="nav-item" data-page="kitchen"><span class="icon">🍽️</span>Кухня</div>
+                    <div class="nav-title">Производство</div>
+                    <a class="nav-item" data-page="production">
+                        <span class="nav-icon">🏭</span>Цеха и склады
+                    </a>
+                    <a class="nav-item" data-page="kitchen">
+                        <span class="nav-icon">🍽️</span>Кухня
+                    </a>
                 </div>
                 
                 <div class="nav-section">
-                    <div class="nav-section-title">Инструменты</div>
-                    <div class="nav-item" data-page="checklists"><span class="icon">✅</span>Чек-листы <span class="badge" id="checksCount">0</span></div>
-                    <div class="nav-item" data-page="tools"><span class="icon">🔧</span>Оборудование</div>
-                    <div class="nav-item" data-page="charts"><span class="icon">📈</span>Графики</div>
+                    <div class="nav-title">Инструменты</div>
+                    <a class="nav-item" data-page="checklists">
+                        <span class="nav-icon">✅</span>Чек-листы
+                    </a>
+                    <a class="nav-item" data-page="tools">
+                        <span class="nav-icon">🔧</span>Оборудование
+                    </a>
+                    <a class="nav-item" data-page="charts">
+                        <span class="nav-icon">📈</span>Графики
+                    </a>
                 </div>
                 
                 <div class="nav-section">
-                    <div class="nav-section-title">Система</div>
-                    <div class="nav-item" data-page="settings"><span class="icon">⚙️</span>Настройки</div>
+                    <div class="nav-title">Система</div>
+                    <a class="nav-item" data-page="settings">
+                        <span class="nav-icon">⚙️</span>Настройки
+                    </a>
                 </div>
             </nav>
         </aside>
         
-        <main class="main" id="mainContent"></main>
+        <main class="main" id="main">
+            <!-- Content loaded dynamically -->
+        </main>
     </div>
 
-    <div class="modal-overlay" id="modal">
-        <div class="modal">
-            <div class="modal-header">
-                <span class="modal-title" id="modalTitle">Модальное окно</span>
-                <button class="modal-close" onclick="App.closeModal()">&times;</button>
+    <div class="modal" id="modal">
+        <div class="modal-overlay" onclick="Modal.close(event)">
+            <div class="modal-content" onclick="event.stopPropagation()">
+                <div class="modal-header">
+                    <h2 class="modal-title" id="modalTitle">Модальное окно</h2>
+                    <button class="modal-close" onclick="Modal.close()">&times;</button>
+                </div>
+                <div class="modal-body" id="modalBody"></div>
+                <div class="modal-footer" id="modalFooter"></div>
             </div>
-            <div class="modal-body" id="modalBody"></div>
-            <div class="modal-footer" id="modalFooter"></div>
         </div>
     </div>
 
-    <div class="toast-container" id="toastContainer"></div>
+    <div class="toast-container" id="toast"></div>
 
 
     <script src="db.js"></script>
+    <script src="constructor.js"></script>
     <script src="checklist.js"></script>
     <script src="app.js"></script>
 </body>
