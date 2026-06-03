@@ -1,4 +1,4 @@
-// System Work DB - Database Module
+// System Work DB
 const DB = {
     PREFIX: 'sw_',
     
@@ -13,10 +13,12 @@ const DB = {
         localStorage.setItem(this.PREFIX + 'config', JSON.stringify({companyName: 'Моя компания', timezone: 'Europe/Moscow'}));
         localStorage.setItem(this.PREFIX + 'journals', JSON.stringify([]));
         localStorage.setItem(this.PREFIX + 'records', JSON.stringify([]));
-        localStorage.setItem(this.PREFIX + 'checklists', JSON.stringify([]));
         localStorage.setItem(this.PREFIX + 'production', JSON.stringify([]));
         localStorage.setItem(this.PREFIX + 'kitchen', JSON.stringify([]));
-        localStorage.setItem(this.PREFIX + 'equipment', JSON.stringify([]));
+        localStorage.setItem(this.PREFIX + 'tools', JSON.stringify([]));
+        localStorage.setItem(this.PREFIX + 'checks', JSON.stringify([]));
+        localStorage.setItem(this.PREFIX + 'templates', JSON.stringify([]));
+        localStorage.setItem(this.PREFIX + 'template_forms', JSON.stringify([]));
     },
     
     getCollection(name) {
@@ -32,6 +34,7 @@ const DB = {
         const collection = this.getCollection(name);
         item.id = Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
         item.createdAt = new Date().toISOString();
+        item.updatedAt = item.createdAt;
         collection.push(item);
         this.setCollection(name, collection);
         return item;
@@ -41,7 +44,7 @@ const DB = {
         const collection = this.getCollection(name);
         const idx = collection.findIndex(i => i.id === id);
         if (idx > -1) {
-            collection[idx] = { ...collection[idx], ...updates };
+            collection[idx] = { ...collection[idx], ...updates, updatedAt: new Date().toISOString() };
             this.setCollection(name, collection);
             return collection[idx];
         }
@@ -57,22 +60,13 @@ const DB = {
     getJournals() { return this.getCollection('journals'); },
     createJournal(data) { return this.create('journals', data); },
     updateJournal(id, data) { return this.update('journals', id, data); },
-    deleteJournal(id) { 
-        this.setCollection('records', this.getCollection('records').filter(r => r.journalId !== id));
-        return this.delete('journals', id); 
-    },
+    deleteJournal(id) { return this.delete('journals', id); },
     
     // Records
-    getRecords(journalId) { 
-        return this.getCollection('records').filter(r => r.journalId === journalId)
-            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); 
-    },
+    getRecords(journalId) { return this.getCollection('records').filter(r => r.journalId === journalId).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); },
     createRecord(journalId, data) { return this.create('records', { ...data, journalId }); },
+    updateRecord(id, data) { return this.update('records', id, data); },
     deleteRecord(id) { return this.delete('records', id); },
-    
-    // Checklists
-    getChecklists() { return this.getCollection('checklists'); },
-    createChecklist(data) { return this.create('checklists', data); },
     
     // Production
     getProduction() { return this.getCollection('production'); },
@@ -86,11 +80,22 @@ const DB = {
     updateKitchenItem(id, data) { return this.update('kitchen', id, data); },
     deleteKitchenItem(id) { return this.delete('kitchen', id); },
     
-    // Equipment
-    getEquipment() { return this.getCollection('equipment'); },
-    createEquipment(data) { return this.create('equipment', data); },
-    updateEquipment(id, data) { return this.update('equipment', id, data); },
-    deleteEquipment(id) { return this.delete('equipment', id); },
+    // Tools
+    getTools() { return this.getCollection('tools'); },
+    createTool(data) { return this.create('tools', data); },
+    updateTool(id, data) { return this.update('tools', id, data); },
+    deleteTool(id) { return this.delete('tools', id); },
+    
+    // Checks
+    getChecks() { return this.getCollection('checks'); },
+    createCheck(data) { return this.create('checks', data); },
+    
+    // Templates
+    getTemplates() { return this.getCollection('templates'); },
+    createTemplate(data) { return this.create('templates', data); },
+    
+    // Template Forms
+    getTemplateForms() { return this.getCollection('template_forms'); },
     
     // Config
     getConfig() { return this.getCollection('config'); },
@@ -104,10 +109,12 @@ const DB = {
             config: this.getConfig(),
             journals: this.getCollection('journals'),
             records: this.getCollection('records'),
-            checklists: this.getCollection('checklists'),
             production: this.getCollection('production'),
             kitchen: this.getCollection('kitchen'),
-            equipment: this.getCollection('equipment')
+            tools: this.getCollection('tools'),
+            checks: this.getCollection('checks'),
+            templates: this.getCollection('templates'),
+            template_forms: this.getCollection('template_forms')
         };
     },
     
@@ -115,10 +122,12 @@ const DB = {
         if (data.config) this.setCollection('config', data.config);
         if (data.journals) this.setCollection('journals', data.journals);
         if (data.records) this.setCollection('records', data.records);
-        if (data.checklists) this.setCollection('checklists', data.checklists);
         if (data.production) this.setCollection('production', data.production);
         if (data.kitchen) this.setCollection('kitchen', data.kitchen);
-        if (data.equipment) this.setCollection('equipment', data.equipment);
+        if (data.tools) this.setCollection('tools', data.tools);
+        if (data.checks) this.setCollection('checks', data.checks);
+        if (data.templates) this.setCollection('templates', data.templates);
+        if (data.template_forms) this.setCollection('template_forms', data.template_forms);
     },
     
     downloadExport() {
@@ -149,84 +158,3 @@ const DB = {
 };
 
 DB.init();
-
-// Checklist module
-const Checklist = {
-    templates: {
-        daily: { name: 'Ежедневная проверка', items: [
-            { id: 'temp', name: 'Температура холодильников (0...+5°C)', type: 'number' },
-            { id: 'temp_freeze', name: 'Температура морозильников (-18...-12°C)', type: 'number' },
-            { id: 'clean_fridge', name: 'Чистота холодильника', type: 'checkbox' },
-            { id: 'clean_surface', name: 'Чистота рабочих поверхностей', type: 'checkbox' },
-            { id: 'equipment', name: 'Оборудование исправно', type: 'checkbox' },
-            { id: 'products', name: 'Сроки годности в норме', type: 'checkbox' },
-            { id: 'notes', name: 'Заметки', type: 'text' }
-        ]},
-        weekly: { name: 'Еженедельная проверка', items: [
-            { id: 'deep_clean', name: 'Генеральная уборка', type: 'checkbox' },
-            { id: 'equipment_check', name: 'Проверка оборудования', type: 'checkbox' },
-            { id: 'fifo', name: 'Проверка FIFO', type: 'checkbox' },
-            { id: 'supplies', name: 'Запас расходных материалов', type: 'checkbox' },
-            { id: 'notes', name: 'Заметки', type: 'text' }
-        ]},
-        haccp: { name: 'HACCP проверка', items: [
-            { id: 'temp_log', name: 'Журнал температур заполнен', type: 'checkbox' },
-            { id: 'sanitizer', name: 'Санитайзеры заполнены', type: 'checkbox' },
-            { id: 'ppe', name: 'СИЗ в наличии', type: 'checkbox' },
-            { id: 'cross_contamination', name: 'Защита от перекр. загрязнения', type: 'checkbox' },
-            { id: 'waste', name: 'Утилизация отходов', type: 'checkbox' },
-            { id: 'notes', name: 'Заметки', type: 'text' }
-        ]},
-        equipment: { name: 'Проверка оборудования', items: [
-            { id: 'visual', name: 'Визуальный осмотр', type: 'checkbox' },
-            { id: 'clean', name: 'Чистка', type: 'checkbox' },
-            { id: 'function', name: 'Проверка работы', type: 'checkbox' },
-            { id: 'safety', name: 'Безопасность', type: 'checkbox' },
-            { id: 'notes', name: 'Заметки', type: 'text' }
-        ]}
-    },
-    
-    start(type) {
-        const template = this.templates[type];
-        const form = template.items.map(item => {
-            if (item.type === 'checkbox') {
-                return `<div class="form-group" style="display: flex; align-items: center; gap: 10px;"><input type="checkbox" id="check_${item.id}" style="width: 18px; height: 18px;"><label class="form-label" style="margin: 0;">${item.name}</label></div>`;
-            } else if (item.type === 'number') {
-                return `<div class="form-group"><label class="form-label">${item.name}</label><input type="number" class="form-input" id="check_${item.id}"></div>`;
-            } else if (item.type === 'text') {
-                return `<div class="form-group"><label class="form-label">${item.name}</label><textarea class="form-input" id="check_${item.id}" rows="2"></textarea></div>`;
-            }
-            return '';
-        }).join('');
-        
-        App.showModal(template.name, `
-            <div class="form-group"><label class="form-label">Проверяющий</label><input type="text" class="form-input" id="checkInspector" placeholder="Имя"></div>
-            ${form}`,
-            [{ text: 'Сохранить', primary: true, onclick: `Checklist.save('${type}')` }, { text: 'Отмена', onclick: 'App.closeModal()' }]);
-    },
-    
-    save(type) {
-        const template = this.templates[type];
-        const inspector = document.getElementById('checkInspector').value.trim();
-        const results = {};
-        let allPassed = true;
-        
-        template.items.forEach(item => {
-            const el = document.getElementById('check_' + item.id);
-            if (!el) return;
-            if (item.type === 'checkbox') {
-                results[item.id] = el.checked;
-                if (!el.checked) allPassed = false;
-            } else if (item.type === 'number') {
-                results[item.id] = el.value;
-            } else {
-                results[item.id] = el.value;
-            }
-        });
-        
-        DB.createChecklist({ type, inspector, results, status: allPassed ? 'passed' : 'failed' });
-        App.closeModal();
-        App.showToast('Проверка сохранена', 'success');
-        App.loadPage('checklists');
-    }
-};
