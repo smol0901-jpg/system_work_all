@@ -18,7 +18,7 @@ const DB = {
         localStorage.setItem(this.PREFIX + 'tools', JSON.stringify([]));
         localStorage.setItem(this.PREFIX + 'checks', JSON.stringify([]));
         localStorage.setItem(this.PREFIX + 'templates', JSON.stringify([]));
-        localStorage.setItem(this.PREFIX + 'template_forms', JSON.stringify([]));
+        localStorage.setItem(this.PREFIX + 'forms', JSON.stringify([]));
     },
     
     getCollection(name) {
@@ -94,12 +94,16 @@ const DB = {
     getTemplates() { return this.getCollection('templates'); },
     createTemplate(data) { return this.create('templates', data); },
     
-    // Template Forms
-    getTemplateForms() { return this.getCollection('template_forms'); },
+    // Forms (filled forms)
+    getForms() { return this.getCollection('forms'); },
+    createForm(data) { return this.create('forms', data); },
     
     // Config
     getConfig() { return this.getCollection('config'); },
-    setConfig(updates) { const current = this.getConfig(); this.setCollection('config', { ...current, ...updates }); },
+    setConfig(updates) { 
+        const current = this.getConfig(); 
+        this.setCollection('config', { ...current, ...updates }); 
+    },
     
     // Export/Import
     exportAll() {
@@ -114,7 +118,7 @@ const DB = {
             tools: this.getCollection('tools'),
             checks: this.getCollection('checks'),
             templates: this.getCollection('templates'),
-            template_forms: this.getCollection('template_forms')
+            forms: this.getCollection('forms')
         };
     },
     
@@ -127,7 +131,7 @@ const DB = {
         if (data.tools) this.setCollection('tools', data.tools);
         if (data.checks) this.setCollection('checks', data.checks);
         if (data.templates) this.setCollection('templates', data.templates);
-        if (data.template_forms) this.setCollection('template_forms', data.template_forms);
+        if (data.forms) this.setCollection('forms', data.forms);
     },
     
     downloadExport() {
