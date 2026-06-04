@@ -44,7 +44,7 @@ const App = {
     
     updateCounts() {
         const templates = DB.getTemplates();
-        const forms = DB.getCollection('forms');
+        const forms = DB.getForms();
         const checks = DB.getChecks();
         
         document.getElementById('templatesCount').textContent = templates.length;
@@ -56,7 +56,7 @@ const App = {
     // ============================================
     renderDashboard(container) {
         const templates = DB.getTemplates();
-        const forms = DB.getCollection('forms');
+        const forms = DB.getForms();
         const checks = DB.getChecks();
         const production = DB.getProduction();
         const kitchen = DB.getKitchen();
@@ -232,7 +232,7 @@ const App = {
     // FORMS
     // ============================================
     renderForms(container) {
-        const forms = DB.getCollection('forms');
+        const forms = DB.getForms();
         const templates = DB.getTemplates();
         
         // Группировка по шаблонам
@@ -316,7 +316,7 @@ const App = {
     },
     
     viewForm(id) {
-        const form = DB.getCollection('forms').find(f => f.id === id);
+        const form = DB.getForms().find(f => f.id === id);
         if (!form) return;
         
         const valuesHtml = Object.values(form.values || {}).map(v => `
@@ -342,7 +342,7 @@ const App = {
     
     deleteForm(id) {
         if (!confirm('Удалить эту запись?')) return;
-        const forms = DB.getCollection('forms').filter(f => f.id !== id);
+        const forms = DB.getForms().filter(f => f.id !== id);
         DB.setCollection('forms', forms);
         Toast.show('Удалено', 'success');
         this.loadPage('forms');
@@ -591,7 +591,7 @@ const App = {
     // ============================================
     renderCharts(container) {
         const checks = DB.getChecks();
-        const forms = DB.getCollection('forms');
+        const forms = DB.getForms();
         const kitchen = DB.getKitchen();
         
         container.innerHTML = `
@@ -665,8 +665,7 @@ const App = {
                         data: [okCount || 1, errorCount || 0],
                         backgroundColor: ['#3fb950', '#f85149']
                     }]
-                },
-                options: { responsive: true, maintainAspectRatio: false }
+                }n                options: { responsive: true, maintainAspectRatio: false }
             });
             
             // По шаблонам
