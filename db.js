@@ -1,164 +1,176 @@
-// System Work DB
-const DB = {
-    PREFIX: 'sw_',
-    
-    init() {
-        if (!localStorage.getItem(this.PREFIX + 'init')) {
-            this.reset();
-            localStorage.setItem(this.PREFIX + 'init', 'true');
-        }
-    },
-    
-    reset() {
-        localStorage.setItem(this.PREFIX + 'config', JSON.stringify({companyName: 'Моя компания', timezone: 'Europe/Moscow'}));
-        localStorage.setItem(this.PREFIX + 'journals', JSON.stringify([]));
-        localStorage.setItem(this.PREFIX + 'records', JSON.stringify([]));
-        localStorage.setItem(this.PREFIX + 'production', JSON.stringify([]));
-        localStorage.setItem(this.PREFIX + 'kitchen', JSON.stringify([]));
-        localStorage.setItem(this.PREFIX + 'tools', JSON.stringify([]));
-        localStorage.setItem(this.PREFIX + 'checks', JSON.stringify([]));
-        localStorage.setItem(this.PREFIX + 'templates', JSON.stringify([]));
-        localStorage.setItem(this.PREFIX + 'forms', JSON.stringify([]));
-    },
-    
-    getCollection(name) {
-        const data = localStorage.getItem(this.PREFIX + name);
-        return data ? JSON.parse(data) : [];
-    },
-    
-    setCollection(name, data) {
-        localStorage.setItem(this.PREFIX + name, JSON.stringify(data));
-    },
-    
-    create(name, item) {
-        const collection = this.getCollection(name);
-        item.id = Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
-        item.createdAt = new Date().toISOString();
-        item.updatedAt = item.createdAt;
-        collection.push(item);
-        this.setCollection(name, collection);
-        return item;
-    },
-    
-    update(name, id, updates) {
-        const collection = this.getCollection(name);
-        const idx = collection.findIndex(i => i.id === id);
-        if (idx > -1) {
-            collection[idx] = { ...collection[idx], ...updates, updatedAt: new Date().toISOString() };
-            this.setCollection(name, collection);
-            return collection[idx];
-        }
-        return null;
-    },
-    
-    delete(name, id) {
-        const collection = this.getCollection(name);
-        this.setCollection(name, collection.filter(i => i.id !== id));
-    },
-    
-    // Journals
-    getJournals() { return this.getCollection('journals'); },
-    createJournal(data) { return this.create('journals', data); },
-    updateJournal(id, data) { return this.update('journals', id, data); },
-    deleteJournal(id) { return this.delete('journals', id); },
-    
-    // Records
-    getRecords(journalId) { return this.getCollection('records').filter(r => r.journalId === journalId).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); },
-    createRecord(journalId, data) { return this.create('records', { ...data, journalId }); },
-    updateRecord(id, data) { return this.update('records', id, data); },
-    deleteRecord(id) { return this.delete('records', id); },
-    
-    // Production
-    getProduction() { return this.getCollection('production'); },
-    createProductionItem(data) { return this.create('production', data); },
-    updateProductionItem(id, data) { return this.update('production', id, data); },
-    deleteProductionItem(id) { return this.delete('production', id); },
-    
-    // Kitchen
-    getKitchen() { return this.getCollection('kitchen'); },
-    createKitchenItem(data) { return this.create('kitchen', data); },
-    updateKitchenItem(id, data) { return this.update('kitchen', id, data); },
-    deleteKitchenItem(id) { return this.delete('kitchen', id); },
-    
-    // Tools
-    getTools() { return this.getCollection('tools'); },
-    createTool(data) { return this.create('tools', data); },
-    updateTool(id, data) { return this.update('tools', id, data); },
-    deleteTool(id) { return this.delete('tools', id); },
-    
-    // Checks
-    getChecks() { return this.getCollection('checks'); },
-    createCheck(data) { return this.create('checks', data); },
-    
-    // Templates
-    getTemplates() { return this.getCollection('templates'); },
-    createTemplate(data) { return this.create('templates', data); },
-    
-    // Forms (filled forms)
-    getForms() { return this.getCollection('forms'); },
-    createForm(data) { return this.create('forms', data); },
-    
-    // Config
-    getConfig() { return this.getCollection('config'); },
-    setConfig(updates) { 
-        const current = this.getConfig(); 
-        this.setCollection('config', { ...current, ...updates }); 
-    },
-    
-    // Export/Import
-    exportAll() {
-        return {
-            version: '1.0',
-            exportedAt: new Date().toISOString(),
-            config: this.getConfig(),
-            journals: this.getCollection('journals'),
-            records: this.getCollection('records'),
-            production: this.getCollection('production'),
-            kitchen: this.getCollection('kitchen'),
-            tools: this.getCollection('tools'),
-            checks: this.getCollection('checks'),
-            templates: this.getCollection('templates'),
-            forms: this.getCollection('forms')
-        };
-    },
-    
-    importAll(data) {
-        if (data.config) this.setCollection('config', data.config);
-        if (data.journals) this.setCollection('journals', data.journals);
-        if (data.records) this.setCollection('records', data.records);
-        if (data.production) this.setCollection('production', data.production);
-        if (data.kitchen) this.setCollection('kitchen', data.kitchen);
-        if (data.tools) this.setCollection('tools', data.tools);
-        if (data.checks) this.setCollection('checks', data.checks);
-        if (data.templates) this.setCollection('templates', data.templates);
-        if (data.forms) this.setCollection('forms', data.forms);
-    },
-    
-    downloadExport() {
-        const data = this.exportAll();
-        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `system_work_${new Date().toISOString().split('T')[0]}.json`;
-        a.click();
-        URL.revokeObjectURL(url);
-    },
-    
-    uploadImport(file) {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                try {
-                    const data = JSON.parse(e.target.result);
-                    this.importAll(data);
-                    resolve(data);
-                } catch (err) { reject(err); }
-            };
-            reader.onerror = reject;
-            reader.readAsText(file);
-        });
-    }
-};
+// ============================================================
+// System Work - Database Module (LocalStorage)
+// ============================================================
+(function(global) {
+    'use strict';
 
-DB.init();
+    const DB = {
+        PREFIX: 'sw_',
+        
+        // Инициализация
+        init() {
+            try {
+                if (!localStorage.getItem(this.PREFIX + 'init')) {
+                    this.reset();
+                    localStorage.setItem(this.PREFIX + 'init', 'true');
+                    console.log('[DB] Initialized');
+                }
+            } catch(e) {
+                console.error('[DB] Init error:', e);
+            }
+        },
+        
+        // Получить коллекцию
+        getCollection(name) {
+            try {
+                const data = localStorage.getItem(this.PREFIX + name);
+                return data ? JSON.parse(data) : [];
+            } catch(e) {
+                console.error('[DB] Get error:', name, e);
+                return [];
+            }
+        },
+        
+        // Сохранить коллекцию
+        setCollection(name, data) {
+            try {
+                localStorage.setItem(this.PREFIX + name, JSON.stringify(data));
+                return true;
+            } catch(e) {
+                console.error('[DB] Set error:', name, e);
+                return false;
+            }
+        },
+        
+        // Создать элемент
+        create(name, item) {
+            const collection = this.getCollection(name);
+            item.id = 'id_' + Date.now().toString(36) + '_' + Math.random().toString(36).substr(2, 5);
+            item.createdAt = new Date().toISOString();
+            item.updatedAt = item.createdAt;
+            collection.push(item);
+            this.setCollection(name, collection);
+            console.log('[DB] Created:', name, item.id);
+            return item;
+        },
+        
+        // Обновить элемент
+        update(name, id, updates) {
+            const collection = this.getCollection(name);
+            const idx = collection.findIndex(function(i) { return i.id === id; });
+            if (idx > -1) {
+                collection[idx] = Object.assign({}, collection[idx], updates, { updatedAt: new Date().toISOString() });
+                this.setCollection(name, collection);
+                return collection[idx];
+            }
+            return null;
+        },
+        
+        // Удалить элемент
+        delete(name, id) {
+            const collection = this.getCollection(name);
+            this.setCollection(name, collection.filter(function(i) { return i.id !== id; }));
+        },
+        
+        // ============================================
+        // COLLECTIONS
+        // ============================================
+        getTemplates: function() { return this.getCollection('templates'); },
+        getForms: function() { return this.getCollection('forms'); },
+        getProduction: function() { return this.getCollection('production'); },
+        getKitchen: function() { return this.getCollection('kitchen'); },
+        getTools: function() { return this.getCollection('tools'); },
+        getChecks: function() { return this.getCollection('checks'); },
+        
+        createTemplate: function(data) { return this.create('templates', data); },
+        createForm: function(data) { return this.create('forms', data); },
+        
+        createProductionItem: function(data) { return this.create('production', data); },
+        updateProductionItem: function(id, data) { return this.update('production', id, data); },
+        deleteProductionItem: function(id) { return this.delete('production', id); },
+        
+        createKitchenItem: function(data) { return this.create('kitchen', data); },
+        updateKitchenItem: function(id, data) { return this.update('kitchen', id, data); },
+        deleteKitchenItem: function(id) { return this.delete('kitchen', id); },
+        
+        createTool: function(data) { return this.create('tools', data); },
+        updateTool: function(id, data) { return this.update('tools', id, data); },
+        deleteTool: function(id) { return this.delete('tools', id); },
+        
+        createCheck: function(data) { return this.create('checks', data); },
+        
+        // Config
+        getConfig: function() {
+            try {
+                return this.getCollection('config')[0] || { companyName: 'Моя компания' };
+            } catch(e) { return { companyName: 'Моя компания' }; }
+        },
+        setConfig: function(updates) {
+            var current = this.getConfig();
+            this.setCollection('config', [Object.assign({}, current, updates)]);
+        },
+        
+        // Reset
+        reset: function() {
+            console.log('[DB] Reset');
+            this.setCollection('config', [{ companyName: 'Моя компания', timezone: 'Europe/Moscow' }]);
+            this.setCollection('templates', []);
+            this.setCollection('forms', []);
+            this.setCollection('production', []);
+            this.setCollection('kitchen', []);
+            this.setCollection('tools', []);
+            this.setCollection('checks', []);
+        },
+        
+        // Export/Import
+        downloadExport: function() {
+            var data = {
+                version: '1.0',
+                exportedAt: new Date().toISOString(),
+                config: this.getCollection('config'),
+                templates: this.getCollection('templates'),
+                forms: this.getCollection('forms'),
+                production: this.getCollection('production'),
+                kitchen: this.getCollection('kitchen'),
+                tools: this.getCollection('tools'),
+                checks: this.getCollection('checks')
+            };
+            var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = 'system_work_' + new Date().toISOString().split('T')[0] + '.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        },
+        
+        uploadImport: function(file) {
+            var self = this;
+            return new Promise(function(resolve, reject) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        var data = JSON.parse(e.target.result);
+                        if (data.config) self.setCollection('config', data.config);
+                        if (data.templates) self.setCollection('templates', data.templates);
+                        if (data.forms) self.setCollection('forms', data.forms);
+                        if (data.production) self.setCollection('production', data.production);
+                        if (data.kitchen) self.setCollection('kitchen', data.kitchen);
+                        if (data.tools) self.setCollection('tools', data.tools);
+                        if (data.checks) self.setCollection('checks', data.checks);
+                        resolve(data);
+                    } catch(err) { reject(err); }
+                };
+                reader.onerror = reject;
+                reader.readAsText(file);
+            });
+        }
+    };
+
+    // Initialize
+    DB.init();
+
+    // Export global
+    global.DB = DB;
+    
+})(window);
